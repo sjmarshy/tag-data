@@ -5,14 +5,18 @@
   "author": "Sam Marshall <sjmarshy@gmail.com>",
   "license": "MIT",
   "scripts": {
-      "start": "next start",
-      "build": "next build",
-      "dev": "next"
+    "start": "next start",
+    "build": "next build",
+    "dev": "next"
   },
   "dependencies": {
     "date-fns": "^1.28.5",
+    "isomorphic-fetch": "^2.2.1",
     "next": "beta",
     "react": "^15.6.1",
     "react-dom": "^15.6.1"
+  },
+  "devDependencies": {
+    "prettier": "^1.5.3"
   }
 }
