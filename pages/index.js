@@ -1,70 +1,95 @@
-import 'isomorphic-fetch'
-import format from 'date-fns/format'
-import parse from 'date-fns/parse'
+import 'isomorphic-fetch';
+import format from 'date-fns/format';
+import parse from 'date-fns/parse';
+import styled from 'styled-components';
+import range from 'lodash/range';
+import last from 'lodash/last';
 
 const JSONRender = ({ children: data }) =>
     <div>
         <pre>
             {JSON.stringify(data, null, 2)}
         </pre>
-    </div>
+    </div>;
+
+const inspect = x => {
+    console.log(x);
+    return x;
+};
+
+const dateFromCoordinates = (dates, colWidth, y) =>
+    dates[Math.floor(y / colWidth) - 1];
 
 const chunkIntoDays = data =>
     Object.keys(data).reduce((output, key) => {
-        const date = format(parse(parseInt(key, 10)), 'YYYY-MM-DD')
+        const date = format(parse(parseInt(key, 10)), 'YYYY-MM-DD');
 
         if (output.hasOwnProperty(date)) {
-            output[date][key] = data[key]
+            output[date][key] = data[key];
         } else {
-            output[date] = { [key]: data[key] }
+            output[date] = { [key]: data[key] };
         }
 
-        return output
-    }, {})
+        return output;
+    }, {});
 
 export default class IndexPage extends React.Component {
     static async getInitialProps() {
-        const res = await fetch('http://localhost:3000/static/data.json')
-        const data = await res.json()
+        const res = await fetch('http://localhost:3000/static/data.json');
+        const data = await res.json();
 
-        return { data }
+        return { data };
     }
 
     constructor() {
-        super()
+        super();
 
         this.state = {
             currentDay: '',
-        }
+        };
     }
 
     setCurrentDay(date) {
         this.setState(() => ({
             currentDay: date,
-        }))
+        }));
     }
 
     render() {
-        const { data } = this.props
-        const { currentDay } = this.state
+        const { data } = this.props;
+        const { currentDay } = this.state;
 
-        const chunkedData = chunkIntoDays(data)
+        const chunkedData = chunkIntoDays(data);
+        const dates = Object.keys(chunkedData);
+        const colWidth = 10;
         return (
             <div>
                 <p>
                     {this.state.currentDay}
                 </p>
-                <svg height={24 * 12} width={Object.keys(chunkedData).length * 13}>
+                <svg
+                    height={24 * colWidth}
+                    width={dates.length * colWidth}
+                    onMouseOver={e =>
+                        this.setCurrentDay(
+                            dateFromCoordinates(
+                                Object.keys(chunkedData),
+                                colWidth,
+                                e.clientX
+                            )
+                        )}
+                >
                     <g>
                         {Object.keys(chunkedData).map((date, i) =>
                             <rect
-                                onMouseOver={() => this.setCurrentDay(date)}
                                 key={i}
-                                x={i * 13}
+                                x={i * colWidth}
                                 y={0}
-                                width={12}
-                                height={24 * 12}
-                                fill={currentDay === date ? 'red' : 'black'}
+                                width={colWidth}
+                                height={24 * colWidth}
+                                fill={
+                                    currentDay === date ? '#FF8A65' : '#CFD8DC'
+                                }
                             />
                         )}
 
@@ -72,20 +97,34 @@ export default class IndexPage extends React.Component {
                             Object.keys(chunkedData[date]).map(ts =>
                                 <rect
                                     key={ts}
-                                    x={i * 13}
-                                    y={parseInt(format(parse(parseInt(ts, 10)), 'HH'), 10) * 12}
-                                    width={10}
+                                    x={i * colWidth}
+                                    y={
+                                        parseInt(
+                                            format(
+                                                parse(parseInt(ts, 10)),
+                                                'HH'
+                                            ),
+                                            10
+                                        ) * colWidth
+                                    }
+                                    width={colWidth}
                                     height={10}
-                                    fill="green"
+                                    fill={
+                                        currentDay === date
+                                            ? '#FDD835'
+                                            : '#F4511E'
+                                    }
                                 />
                             )
                         )}
                     </g>
                 </svg>
                 <JSONRender>
-                    {chunkedData}
+                    {Object.keys(chunkedData)
+                        .filter(date => date === currentDay)
+                        .map(date => chunkedData[date])}
                 </JSONRender>
             </div>
-        )
+        );
     }
 }
