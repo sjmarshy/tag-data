@@ -19,6 +19,12 @@
     "styled-components": "^2.1.2"
   },
   "devDependencies": {
+    "babel-eslint": "^7.2.3",
+    "eslint": "^4.4.0",
+    "eslint-config-last": "^0.0.3",
+    "eslint-config-prettier": "^2.3.0",
+    "eslint-plugin-prettier": "^2.1.2",
+    "eslint-plugin-react": "^7.1.0",
     "prettier": "^1.5.3"
   }
 }
