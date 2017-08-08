@@ -11,17 +11,7 @@ import padCharsStart from 'lodash/fp/padCharsStart';
 import compose from 'lodash/fp/compose';
 import styled from 'styled-components';
 
-const inspect = x => {
-    console.log(x); // eslint-disable-line no-undef
-    return x;
-};
-
-const JSONRender = ({ children: data }) =>
-    <div>
-        <pre>
-            {JSON.stringify(data, null, 2)}
-        </pre>
-    </div>;
+import JSONRender from '../components/RawJSONRender';
 
 const parseDecimalInt = x => parseInt(x, 10);
 const formatHH = x => format(x, 'HH');
@@ -32,8 +22,17 @@ const StyledDay = styled.g`
     #day-background {
         fill: #cfd8dc;
     }
+
+    #blip {
+        fill: #f4511e;
+    }
+
     &:hover #day-background {
         fill: #ff8a65;
+    }
+
+    &:hover #blip {
+        fill: #fdd835;
     }
 `;
 
@@ -44,19 +43,26 @@ const Day = ({
     originX,
     originY,
     blipHeight,
+    blipGap,
+    onMouseOver,
+    date,
 }) =>
-    <StyledDay width={width} height={24 * blipHeight}>
+    <StyledDay
+        width={width}
+        height={24 * (blipHeight + blipGap)}
+        onMouseOver={() => onMouseOver(date)}
+    >
         <rect
             id="day-background"
             x={pos * width + originX}
             y={originY}
             width={width}
-            height={24 * blipHeight}
+            height={24 * (blipHeight + blipGap)}
         />
 
         <svg
             width={width}
-            height={24 * blipHeight}
+            height={24 * (blipHeight + blipGap)}
             x={pos * width + originX}
             y={originY}
         >
@@ -64,17 +70,14 @@ const Day = ({
         </svg>
     </StyledDay>;
 
-const Blip = ({ width, timestamp, height, active }) =>
+const Blip = ({ width, timestamp, gap, height }) =>
     <rect
+        id="blip"
         x={0}
-        y={timestampToHourInt(timestamp) * height}
+        y={timestampToHourInt(timestamp) * (height + gap)}
         width={width}
         height={height}
-        fill={active ? '#fdd835' : '#f4511e'}
     />;
-
-const dateFromCoordinates = (dates, colWidth, y) =>
-    dates[Math.floor(y / colWidth) - 1];
 
 const chunkIntoDays = data =>
     Object.keys(data).reduce((output, key) => {
@@ -104,6 +107,8 @@ export default class IndexPage extends React.Component {
         this.state = {
             currentDay: '',
         };
+
+        this.setCurrentDay = this.setCurrentDay.bind(this);
     }
 
     setCurrentDay(date) {
@@ -121,37 +126,30 @@ export default class IndexPage extends React.Component {
 
         const colNo = dates.length;
         const colWidth = 10;
-        const blipHeight = 12;
+        const blipHeight = 15;
+        const blipGap = 2;
 
         const graphOriginY = 10;
         const graphOriginX = 25;
 
-        const height = 24 * blipHeight + graphOriginY; // hours in day vs how tall I want blips to be
+        const height = 24 * (blipHeight + blipGap) + graphOriginY; // hours in day vs how tall I want blips to be
         const width = colWidth * colNo + graphOriginX;
         return (
             <div>
                 <p>
                     {this.state.currentDay}
                 </p>
-                <svg
-                    height={height}
-                    width={width}
-                    onMouseOver={({ clientX }) =>
-                        this.setCurrentDay(
-                            dateFromCoordinates(
-                                dates,
-                                colWidth,
-                                clientX - graphOriginX
-                            )
-                        )}
-                >
+                <svg height={height} width={width}>
                     <g>
                         {range(0, 24)
                             .map(padCharsStart('0', 2))
                             .map((str, pos) =>
                                 <text
                                     key={str}
-                                    y={(pos + 1) * blipHeight + graphOriginY}
+                                    y={
+                                        (pos + 1) * (blipHeight + blipGap) +
+                                        graphOriginY
+                                    }
                                 >
                                     {str}
                                 </text>
@@ -166,6 +164,9 @@ export default class IndexPage extends React.Component {
                                 originX={graphOriginX}
                                 originY={graphOriginY}
                                 blipHeight={blipHeight}
+                                blipGap={blipGap}
+                                onMouseOver={this.setCurrentDay}
+                                date={date}
                             >
                                 {Object.keys(chunkedData[date]).map(timestamp =>
                                     <Blip
@@ -173,6 +174,7 @@ export default class IndexPage extends React.Component {
                                         timestamp={timestamp}
                                         width={colWidth}
                                         height={blipHeight}
+                                        gap={blipGap}
                                         active={currentDay === date}
                                     />
                                 )}
