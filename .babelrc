@@ -1,0 +1,9 @@
+{
+    "env": {
+        "test": {
+            "presets": ["@ava/transform-test-files", "env", "next/babel", "react"],
+            "sourceMaps": "inline",
+            "plugins": ["transform-runtime"]
+        }
+    }
+}
