@@ -9,7 +9,7 @@ const JSONRender = ({ children: data }) =>
     </div>;
 
 JSONRender.propTypes = {
-    children: PropTypes.oneOf(PropTypes.array, PropTypes.object),
+    children: PropTypes.oneOf([PropTypes.array, PropTypes.object]),
 };
 
 export default JSONRender;

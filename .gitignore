@@ -2,3 +2,4 @@ node_modules
 .next
 data
 static
+.nyc_output
